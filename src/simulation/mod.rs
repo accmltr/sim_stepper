@@ -1,5 +1,3 @@
-pub mod state;
-
 pub trait Simulation<Event, Response, State> {
     /// Changes simulation based on tick incrementing and consequential
     /// messages given.

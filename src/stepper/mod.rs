@@ -1,12 +1,15 @@
-use crate::{Simulation, message::Message};
+use crate::Simulation;
 
 mod simple_stepper;
 
 /// The direct interface between the runtime and this library.
 /// [[Runner]]  manages a [[Simulation]] by collecting all messages
 /// for the next tick, then running the next tick.
-pub trait Stepper<M: Message, T, S: Simulation<M, T>> {
-    fn step(&mut self, local_messages: &Vec<M>);
+pub trait Stepper<Event, Response, State, S>
+where
+    S: Simulation<Event, Response, State>,
+{
+    fn step(&mut self, local_events: &Vec<Event>);
     fn simulation(&self) -> &S;
 }
 

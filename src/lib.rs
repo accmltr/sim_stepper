@@ -2,8 +2,6 @@
 pub use simulation::Simulation;
 
 // Mods
-/// Message type going through port > stepper > simulation and back.
-mod message;
 /// Manages connections and messages from and to connections.
 mod port;
 /// Lock step simulation.

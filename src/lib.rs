@@ -1,14 +1,15 @@
-pub fn add(left: u64, right: u64) -> u64 {
-    left + right
-}
+// Re-exports
+pub use simulation::Simulation;
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+// Mods
+mod message;
+mod message_data;
+mod message_port;
+mod simulation;
+mod stepper;
 
-    #[test]
-    fn it_works() {
-        let result = add(2, 2);
-        assert_eq!(result, 4);
-    }
-}
+// Requirements:
+//
+// - Simulates accross network deterministically.
+// - Server auth simulation.
+// - Connection authentication plugability.

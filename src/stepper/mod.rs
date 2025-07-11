@@ -1,13 +1,15 @@
+use crate::{Simulation, message::Message};
+
+mod simple_stepper;
+
 /// The direct interface between the runtime and this library.
 /// [[Runner]]  manages a [[Simulation]] by collecting all messages
 /// for the next tick, then running the next tick.
-pub trait Stepper<M> {
-    fn process_message(&mut self, msg: M);
-    fn process_message_batch(&mut self, msg: Vec<M>);
+pub trait Stepper<M: Message, T, S: Simulation<M, T>> {
+    fn step(&mut self, local_messages: &Vec<M>);
+    fn simulation(&self) -> &S;
 }
 
-// forward runner: only ticks forward, never reverting simulation
-pub struct ForwardStepper {}
 // rewind runner: applies locally generated messages in the next tick, then
 //
 

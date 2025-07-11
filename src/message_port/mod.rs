@@ -1,3 +1,5 @@
+pub mod connection;
+
 pub trait ClientPort<M> {
     /// Send message to server, reliably and ordered.
     fn send(&self, message: M);

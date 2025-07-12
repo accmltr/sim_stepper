@@ -1,11 +1,10 @@
-use super::Stepper;
-use crate::{message::Message, simulation::Simulation};
+use crate::simulation::Simulation;
 
 use std::marker::PhantomData;
 
 /// Only steps forward, very simple.
-pub struct SimpleStepper<M: Message, T, S: Simulation<M, T>> {
-    message_data_type: PhantomData<M>,
+pub struct SimpleStepper<Message, T, S: Simulation<Message, T>> {
+    message_data_type: PhantomData<Message>,
     state_type: PhantomData<T>,
     simulation: S,
 }

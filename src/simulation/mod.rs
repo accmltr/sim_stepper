@@ -1,10 +1,13 @@
-pub trait Simulation<Event, Response, State> {
+pub trait Simulation<Event, State, R>
+where
+    R: StepResult<Event>,
+{
     /// Changes simulation based on tick incrementing and consequential
     /// messages given.
     ///
     /// Returns [`EventResult`] for each given event. So `events` and
     /// returned [`Vec`] need to have same `len()`.
-    fn step(&self, events: &[Event]) -> Vec<EventOutcome<Response>>;
+    fn step(&self, events: &[Event]) -> R;
 
     /// The current tick count.
     fn tick_count(&self) -> u64;
@@ -13,12 +16,14 @@ pub trait Simulation<Event, Response, State> {
     fn state(&self) -> &State;
 }
 
-pub struct EventOutcome<Response> {
-    /// The event index as found in the ordered list of events given to
-    /// the `Simulation::step` method.
-    index: usize,
-    /// Whether the event changed the state of the simulation.
-    consequential: bool,
-    /// Optional response to event for external use.
-    response: Option<Response>,
+pub trait StepResult<Event> {
+    /// Returns indices of events that lead to a delta in the
+    /// simulation state. The indices point to events in the
+    /// slice of events that were given as an argument to the
+    /// `step` method.
+    ///
+    /// This set of events can be used to
+    /// re-simulate the last step perfectly, wherever another
+    /// simulation with the same tick count and state uses them.
+    fn consequential(&self) -> Vec<usize>;
 }

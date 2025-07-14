@@ -2,7 +2,10 @@ use crate::{port::Port, simulation::Simulation, stepper::Stepper};
 
 use std::marker::PhantomData;
 
-pub struct SimpleStepper<Event, State, S>
+/// Only steps forwards, does not feature roleback functionality. Great
+/// for RTS games that usually do not have a need for low perceived
+/// latency. *This is a great option to test out this library with.*
+pub struct ForwardStepper<Event, State, S>
 where
     S: Simulation<Event, State>,
 {
@@ -10,7 +13,7 @@ where
     _phantom: PhantomData<(Event, State)>,
 }
 
-impl<Event, State, S> Stepper<Event, State, S> for SimpleStepper<Event, State, S>
+impl<Event, State, S> Stepper<Event, State, S> for ForwardStepper<Event, State, S>
 where
     Event: Clone,
     S: Simulation<Event, State>,
@@ -30,7 +33,7 @@ where
         let indices = self.simulation.step(events);
 
         // Find and clone consequential events into vector.
-        let consequential = indices.iter().map(|i| events[i].clone()).collect();
+        let consequential = indices.iter().map(|i| events[*i].clone()).collect();
 
         // Add consequential events to port event outbox for
         // broadcasting.

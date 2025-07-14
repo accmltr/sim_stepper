@@ -1,9 +1,22 @@
-pub mod simple_stepper;
-pub mod step_result_extentions;
-
+pub mod forward_stepper;
+// ---------------------------------------------------------------------
+// /// Runs one simulation authentically, while another one diverges by
+// /// stepping over local events emediatly. Both simulations step over
+// /// authentic events received from the server emediatly.
+// ///
+// /// When the local events make it to the server and are received back
+// /// or rejected by the server, then the local events should be deleted
+// /// from the history of the diverging timeline; either via undoing and
+// /// replaying the history without the events, or via resetting to the
+// /// state before the events and replaying without them included in the
+// /// history.
+// pub mod dual_stepper;
+// ---------------------------------------------------------------------
+//
 // // Other steppers:
 // //
-// // rewind runner: applies locally generated messages in the next tick, then
+// // rewind runner: applies locally generated messages in the next tick,
+// // then
 // //
 
 // /// Applies
@@ -15,3 +28,4 @@ pub mod step_result_extentions;
 // pub struct ResetStepper {}
 
 // // struct ComboStepper;
+// ---------------------------------------------------------------------

@@ -1,18 +1,64 @@
-pub trait Simulation<Event, State> {
-    /// Changes simulation based on tick incrementing and consequential
-    /// messages given.
-    ///
-    /// Returns [`EventResult`] for each given event. So `events` and
-    /// returned [`Vec`] need to have same `len()`.
-    fn step(&self, events: &[Event]) -> Vec<usize>;
+use std::marker::PhantomData;
 
-    /// The current tick count.
-    fn tick_count(&self) -> u64;
-
-    /// Return the inner state of the simulation.
-    fn state(&self) -> &State;
+pub struct Simulation<Event, State, L>
+where
+    L: Logic<Event, State>,
+{
+    step_count: u64,
+    logic: L,
+    state: State,
+    event_type: PhantomData<Event>,
 }
 
+impl<Event, State, L> Simulation<Event, State, L>
+where
+    L: Logic<Event, State>,
+{
+    pub fn new(state: State, logic: L) -> Self {
+        Self {
+            step_count: 0,
+            logic,
+            state,
+            ..Default::default()
+        }
+    }
+
+    pub fn from_save(step_count: u64, state: State, logic: L) -> Self {
+        Self {
+            step_count,
+            logic,
+            state,
+            ..Default::default()
+        }
+    }
+
+    pub fn step_count(&self) -> u64 {
+        self.step_count
+    }
+
+    pub fn state(&self) -> &State {
+        &self.state
+    }
+
+    pub fn step(&mut self, events: &[Event]) -> Vec<usize> {
+        self.step_count += 1;
+    }
+}
+
+/// Implement to define logic for simulation.
+///
+/// Can contain local state that will not be considered as part of the
+/// simulation. The given `state` type should only contain data that
+/// needs to be replicated by other viewers/participants in the
+/// simulation. **Do not store temporary or machine specific data in
+/// the State type, store it the [`Logic`] implementation.**
+pub trait Logic<Event, State> {
+    fn step(&mut self, &mut state: State, events: &[Event]) -> Vec<usize> {
+        self.step_count += 1;
+    }
+}
+
+// ----------------------------------------------------------------------
 // pub trait StepInput<Event> {
 //     fn events(&self) -> &[Event];
 // }

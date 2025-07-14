@@ -51,7 +51,12 @@ where
 /// simulation. The given `state` type should only contain data that
 /// needs to be replicated by other viewers/participants in the
 /// simulation. **Do not store temporary or machine specific data in
-/// the State type, store it the [`Logic`] implementation.**
+/// the State type, store it the [`Logic`] implementation, e.g. auto-
+/// clicker state for player controller.**
+///
+/// *Seperating simulation state from logic and temporary state makes
+/// it much easier to consider simulation replication while developing
+/// a project.*
 pub trait Logic<Event, State> {
     fn step(&mut self, &mut state: State, events: &[Event]) -> Vec<usize> {
         self.step_count += 1;

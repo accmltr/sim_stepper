@@ -1,18 +1,29 @@
-use crate::{Simulation, simulation::StepResult};
+use crate::Simulation;
+use crate::port::Port;
 
 pub mod steppers_implemented;
 
-/// The direct interface between the runtime and this library.
-/// [[Runner]]  manages a [[Simulation]] by collecting all messages
-/// for the next tick, then running the next tick.
+/// Runs your simulation for you based on incoming events, that are read
+/// by the stepper from a given [`Port`] reference.
 ///
-/// Usually you would include the auther of the event as a field in
-/// your event struct.
-pub trait Stepper<Event, R, State, S>
+pub trait Stepper<Event, State, S>
 where
-    R: StepResult<Event>,
-    S: Simulation<Event, State, R>,
+    S: Simulation<Event, State>,
 {
-    fn step(&mut self, local_events: &[Event]);
+    /// Read only access to `Simulation`.
     fn simulation(&self) -> &S;
+
+    /// Reads events from port and step simulation with those events.
+    ///
+    /// ## Note:
+    /// This does not call `send()` on the given port. This is so that
+    /// other interested parties, like the runtime, still has a chance
+    /// to asses the outcome of this step and include their own messages
+    /// to the port outbox before sending happens once per frame. The
+    /// runtime or port should be responsible for sending after each
+    /// step - **only once**.
+    ///
+    fn step<P>(&mut self, port: &mut P)
+    where
+        P: Port<Event>;
 }

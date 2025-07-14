@@ -1,6 +1,9 @@
 /// The purpose of this library is to provide a framework for creating
 /// deterministic simulations, along with useful implementations for
-/// networked solutions.
+/// networked solutions. The main feature being the various stepper
+/// implementations provided which give various perceived lag features.
+/// Creating your own stepper would be missing the point of this
+/// library.
 ///
 /// The basic idea is that events are stepped over in a simulation.
 /// These events will come from participants in the simulation.

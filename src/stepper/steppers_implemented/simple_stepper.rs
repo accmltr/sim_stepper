@@ -1,26 +1,39 @@
-use crate::simulation::Simulation;
+use crate::{port::Port, simulation::Simulation, stepper::Stepper};
 
 use std::marker::PhantomData;
 
-/// Only steps forward, very simple.
-pub struct SimpleStepper<Message, T, S: Simulation<Message, T>> {
-    message_data_type: PhantomData<Message>,
-    state_type: PhantomData<T>,
+pub struct SimpleStepper<Event, State, S>
+where
+    S: Simulation<Event, State>,
+{
     simulation: S,
+    _phantom: PhantomData<(Event, State)>,
 }
 
-impl<M, T, S> Stepper<M, T, S> for SimpleStepper<M, T, S>
+impl<Event, State, S> Stepper<Event, State, S> for SimpleStepper<Event, State, S>
 where
-    M: Message,
-    S: Simulation<M, T>,
+    Event: Clone,
+    S: Simulation<Event, State>,
 {
-    fn step(&mut self, local_messages: &Vec<M>) {
-        let consq = self.simulation.step(local_messages);
-
-        // Broadcast the `consq` messages to all connected listeners.
-    }
-
     fn simulation(&self) -> &S {
         &self.simulation
+    }
+
+    fn step<P>(&mut self, port: &mut P)
+    where
+        P: Port<Event>,
+    {
+        // Fetch events from port.
+        let events = port.read_events();
+
+        // Do step and store consequential event indices.
+        let indices = self.simulation.step(events);
+
+        // Find and clone consequential events into vector.
+        let consequential = indices.iter().map(|i| events[i].clone()).collect();
+
+        // Add consequential events to port event outbox for
+        // broadcasting.
+        port.write_events(consequential);
     }
 }

@@ -1,32 +1,23 @@
 use std::marker::PhantomData;
 
-pub struct Simulation<Event, State, L>
-where
-    L: Logic<Event, State>,
-{
+pub struct Simulation<Event, State: StepLogic<Event>> {
     step_count: u64,
-    logic: L,
     state: State,
     event_type: PhantomData<Event>,
 }
 
-impl<Event, State, L> Simulation<Event, State, L>
-where
-    L: Logic<Event, State>,
-{
-    pub fn new(state: State, logic: L) -> Self {
+impl<Event, State: StepLogic<Event>> Simulation<Event, State> {
+    pub fn new(state: State) -> Self {
         Self {
             step_count: 0,
-            logic,
             state,
             ..Default::default()
         }
     }
 
-    pub fn from_save(step_count: u64, state: State, logic: L) -> Self {
+    pub fn from_save(step_count: u64, state: State) -> Self {
         Self {
             step_count,
-            logic,
             state,
             ..Default::default()
         }
@@ -57,8 +48,8 @@ where
 /// *Seperating simulation state from logic and temporary state makes
 /// it much easier to consider simulation replication while developing
 /// a project.*
-pub trait Logic<Event, State> {
-    fn step(&mut self, &mut state: State, events: &[Event]) -> Vec<usize> {
+pub trait StepLogic<Event> {
+    fn step(&mut self, events: &[Event]) -> Vec<usize> {
         self.step_count += 1;
     }
 }

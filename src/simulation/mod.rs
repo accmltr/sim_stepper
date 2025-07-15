@@ -32,7 +32,10 @@ impl<Event, State: StepLogic<Event>> Simulation<Event, State> {
     }
 
     pub fn step(&mut self, events: &[Event]) -> Vec<usize> {
+        // Increment step count.
         self.step_count += 1;
+        // Run step logic and return consequential events.
+        self.state().step(self.step_count, events)
     }
 }
 
@@ -48,10 +51,15 @@ impl<Event, State: StepLogic<Event>> Simulation<Event, State> {
 /// *Seperating simulation state from logic and temporary state makes
 /// it much easier to consider simulation replication while developing
 /// a project.*
+///
+/// NB: The `step` method needs to return only events that were used
+/// and effected a change in the simulation state. Make sure to include
+/// every event that had an effect on the state, otherwise other
+/// replications of this simulation will fall out of sync and will need
+/// to be reconciled. Including too events that did not have an effect
+/// will take a toll on event traffic and simulation history volume.
 pub trait StepLogic<Event> {
-    fn step(&mut self, events: &[Event]) -> Vec<usize> {
-        self.step_count += 1;
-    }
+    fn step(&mut self, step_count: u64, events: &[Event]) -> Vec<usize> {}
 }
 
 // ----------------------------------------------------------------------

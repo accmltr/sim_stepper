@@ -1,5 +1,3 @@
-pub mod connection;
-
 pub trait EventPort<Event> {
     /// Returns simulation events received since last `send` call.
     fn read_events(&mut self) -> &[Event];

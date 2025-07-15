@@ -11,7 +11,7 @@ impl<Event, State: StepLogic<Event>> Simulation<Event, State> {
         Self {
             step_count: 0,
             state,
-            ..Default::default()
+            event_type: PhantomData,
         }
     }
 
@@ -19,7 +19,7 @@ impl<Event, State: StepLogic<Event>> Simulation<Event, State> {
         Self {
             step_count,
             state,
-            ..Default::default()
+            event_type: PhantomData,
         }
     }
 
@@ -35,7 +35,7 @@ impl<Event, State: StepLogic<Event>> Simulation<Event, State> {
         // Increment step count.
         self.step_count += 1;
         // Run step logic and return consequential events.
-        self.state().step(self.step_count, events)
+        self.state.step(self.step_count, events)
     }
 }
 
@@ -59,7 +59,7 @@ impl<Event, State: StepLogic<Event>> Simulation<Event, State> {
 /// to be reconciled. Including too events that did not have an effect
 /// will take a toll on event traffic and simulation history volume.
 pub trait StepLogic<Event> {
-    fn step(&mut self, step_count: u64, events: &[Event]) -> Vec<usize> {}
+    fn step(&mut self, step_count: u64, events: &[Event]) -> Vec<usize>;
 }
 
 // ----------------------------------------------------------------------

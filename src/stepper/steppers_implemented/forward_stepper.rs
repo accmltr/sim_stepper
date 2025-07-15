@@ -1,24 +1,21 @@
-use crate::{port::Port, simulation::Simulation, stepper::Stepper};
-
-use std::marker::PhantomData;
+use crate::{
+    port::Port,
+    simulation::{Simulation, StepLogic},
+    stepper::Stepper,
+};
 
 /// Only steps forwards, does not feature roleback functionality. Great
 /// for RTS games that usually do not have a need for low perceived
 /// latency. *This is a great option to test out this library with.*
-pub struct ForwardStepper<Event, State, S>
-where
-    S: Simulation<Event, State>,
-{
-    simulation: S,
-    _phantom: PhantomData<(Event, State)>,
+pub struct ForwardStepper<Event, State: StepLogic<Event>> {
+    simulation: Simulation<Event, State>,
 }
 
-impl<Event, State, S> Stepper<Event, State, S> for ForwardStepper<Event, State, S>
+impl<Event, State: StepLogic<Event>> Stepper<Event, State> for ForwardStepper<Event, State>
 where
     Event: Clone,
-    S: Simulation<Event, State>,
 {
-    fn simulation(&self) -> &S {
+    fn simulation(&self) -> &Simulation<Event, State> {
         &self.simulation
     }
 

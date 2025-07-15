@@ -1,5 +1,5 @@
 use crate::{
-    port::Port,
+    event_port::EventPort,
     simulation::{Simulation, StepLogic},
     stepper::Stepper,
 };
@@ -19,12 +19,12 @@ where
         &self.simulation
     }
 
-    fn step<P>(&mut self, port: &mut P)
+    fn step<P>(&mut self, event_port: &mut P)
     where
-        P: Port<Event>,
+        P: EventPort<Event>,
     {
         // Fetch events from port.
-        let events = port.read_events();
+        let events = event_port.read_events();
 
         // Do step and store consequential event indices.
         let indices = self.simulation.step(events);
@@ -32,8 +32,7 @@ where
         // Find and clone consequential events into vector.
         let consequential = indices.iter().map(|i| events[*i].clone()).collect();
 
-        // Add consequential events to port event outbox for
-        // broadcasting.
-        port.write_events(consequential);
+        // Hand over consequential events to port for broadcasting.
+        event_port.outbox_consequential(consequential);
     }
 }

@@ -1,5 +1,5 @@
 use crate::Simulation;
-use crate::port::Port;
+use crate::event_port::EventPort;
 use crate::simulation::StepLogic;
 
 pub mod steppers_implemented;
@@ -24,7 +24,7 @@ where
     /// runtime or port should be responsible for sending after each
     /// step - **only once**.
     ///
-    fn step<P>(&mut self, port: &mut P)
+    fn step<P>(&mut self, event_port: &mut P)
     where
-        P: Port<Event>;
+        P: EventPort<Event>;
 }

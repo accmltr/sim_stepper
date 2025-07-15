@@ -78,7 +78,7 @@ pub use simulation::Simulation;
 
 // Mods
 /// Manages connections and messages from and to connections.
-mod port;
+mod event_port;
 /// Lock step simulation.
 mod simulation;
 /// Manages simulation and based on message incoming and outgoing messages.

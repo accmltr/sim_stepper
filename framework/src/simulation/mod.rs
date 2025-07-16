@@ -1,17 +1,19 @@
 use std::marker::PhantomData;
 
-pub struct Simulation<Event, State: StepLogic<Event>> {
+pub struct Simulation<Input, Output, State: StepLogic<Input, Output>> {
     step_count: u64,
     state: State,
-    event_type: PhantomData<Event>,
+    input_type: PhantomData<Input>,
+    output_type: PhantomData<Output>,
 }
 
-impl<Event, State: StepLogic<Event>> Simulation<Event, State> {
+impl<Input, Output, State: StepLogic<Input, Output>> Simulation<Input, Output, State> {
     pub fn new(state: State) -> Self {
         Self {
             step_count: 0,
             state,
-            event_type: PhantomData,
+            input_type: PhantomData,
+            output_type: PhantomData,
         }
     }
 
@@ -19,7 +21,8 @@ impl<Event, State: StepLogic<Event>> Simulation<Event, State> {
         Self {
             step_count,
             state,
-            event_type: PhantomData,
+            input_type: PhantomData,
+            output_type: PhantomData,
         }
     }
 
@@ -31,11 +34,11 @@ impl<Event, State: StepLogic<Event>> Simulation<Event, State> {
         &self.state
     }
 
-    pub fn step(&mut self, events: &[Event]) -> Vec<usize> {
+    pub fn step(&mut self, input: Input) -> Output {
         // Increment step count.
         self.step_count += 1;
         // Run step logic and return consequential events.
-        self.state.step(self.step_count, events)
+        self.state.step(self.step_count, input)
     }
 }
 
@@ -58,8 +61,8 @@ impl<Event, State: StepLogic<Event>> Simulation<Event, State> {
 /// replications of this simulation will fall out of sync and will need
 /// to be reconciled. Including too events that did not have an effect
 /// will take a toll on event traffic and simulation history volume.
-pub trait StepLogic<Event> {
-    fn step(&mut self, step_count: u64, events: &[Event]) -> Vec<usize>;
+pub trait StepLogic<Input, Output> {
+    fn step(&mut self, step_count: u64, input: Input) -> Output;
 }
 
 // ----------------------------------------------------------------------

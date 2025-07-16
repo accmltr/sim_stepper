@@ -1,9 +1,9 @@
-pub trait EventPort<Event> {
+pub trait Port<StepperInput, StepperOutput> {
     /// Returns simulation events received since last `send` call.
-    fn read_events(&mut self) -> &[Event];
+    fn read_events(&mut self) -> StepperInput;
 
     /// Adds events event outbox for broadcasting to all connections.
-    fn outbox_consequential(&mut self, events: Vec<Event>);
+    fn outbox_consequential(&mut self, stepper_output: StepperOutput);
 
     /// Called once at the end of each simulation step. Clears event inbox,
     /// then empties and sends contents of event outbox.

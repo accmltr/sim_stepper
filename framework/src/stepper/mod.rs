@@ -1,4 +1,4 @@
-use crate::event_port::EventPort;
+use crate::event_port::Port;
 use crate::simulation::Simulation;
 use crate::simulation::StepLogic;
 
@@ -9,12 +9,12 @@ mod implemented;
 /// Runs your simulation for you based on incoming events, that are read
 /// by the stepper from a given [`Port`] reference.
 ///
-pub trait Stepper<Event, State>
+pub trait Stepper<Input, Output, State>
 where
-    State: StepLogic<Event>,
+    State: StepLogic<Input, Output>,
 {
     /// Read only access to [`Simulation`].
-    fn simulation(&self) -> &Simulation<Event, State>;
+    fn simulation(&self) -> &Simulation<Input, Output, State>;
 
     /// Reads events from port and step simulation with those events.
     ///
@@ -28,5 +28,5 @@ where
     ///
     fn step<P>(&mut self, event_port: &mut P)
     where
-        P: EventPort<Event>;
+        P: Port<Input>;
 }

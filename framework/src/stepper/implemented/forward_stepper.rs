@@ -1,5 +1,5 @@
 use crate::{
-    event_port::EventPort,
+    event_port::Port,
     simulation::{Simulation, StepLogic},
     stepper::Stepper,
 };
@@ -7,38 +7,34 @@ use crate::{
 /// Only steps forwards, does not feature roleback functionality. Great
 /// for RTS games that usually do not have a need for low perceived
 /// latency. *This is a great option to test out this library with.*
-pub struct ForwardStepper<Event, State: StepLogic<Event>> {
-    simulation: Simulation<Event, State>,
+pub struct ForwardStepper<Input, Output, State: StepLogic<Input, Output>> {
+    simulation: Simulation<Input, Output, State>,
 }
 
-impl<Event, State: StepLogic<Event>> ForwardStepper<Event, State> {
-    pub fn new(simulation: Simulation<Event, State>) -> Self {
+impl<Input, Output, State: StepLogic<Input, Output>> ForwardStepper<Input, Output, State> {
+    pub fn new(simulation: Simulation<Input, Output, State>) -> Self {
         Self { simulation }
     }
 }
 
-impl<Event, State: StepLogic<Event>> Stepper<Event, State> for ForwardStepper<Event, State>
-where
-    Event: Clone,
+impl<Input, Output, State: StepLogic<Input, Output>> Stepper<Input, Output, State>
+    for ForwardStepper<Input, Output, State>
 {
-    fn simulation(&self) -> &Simulation<Event, State> {
+    fn simulation(&self) -> &Simulation<Input, Output, State> {
         &self.simulation
     }
 
     fn step<P>(&mut self, event_port: &mut P)
     where
-        P: EventPort<Event>,
+        P: Port<Input, Output>,
     {
         // Fetch events from port.
         let events = event_port.read_events();
 
         // Do step and store consequential event indices.
-        let indices = self.simulation.step(events);
-
-        // Find and clone consequential events into vector.
-        let consequential = indices.iter().map(|i| events[*i].clone()).collect();
+        let output = self.simulation.step(events);
 
         // Hand over consequential events to port for broadcasting.
-        event_port.outbox_consequential(consequential);
+        event_port.outbox_consequential(output);
     }
 }

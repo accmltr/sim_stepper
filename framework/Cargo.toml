@@ -5,14 +5,14 @@ edition = "2024"
 
 [dependencies]
 
-[features]
-default = [ "easy_step_io" ]
+# [features]
+# default = [ "easy_step_io" ]
 
-# Feature Sets
+# # Feature Groups 2 (may include from 0 and 1, but not above)
 
-# Feature Groups
-easy_step_io = [ "easy_step_in", "easy_step_out" ]
+# # Feature Groups 1 (only includes 0)
+# easy_step_io = [ "easy_step_in", "easy_step_out" ]
 
-# Optional Features
-easy_step_in = []
-easy_step_out = []
+# # Atomic Features 0
+# easy_step_in = []
+# easy_step_out = []

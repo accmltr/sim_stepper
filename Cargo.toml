@@ -2,6 +2,7 @@
 resolver = "3"
 members = [
   "framework"
-]
+, "premade_ports"]
 
 [workspace.dependencies]
+quinn = "0.11.8"

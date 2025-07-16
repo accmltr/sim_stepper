@@ -6,3 +6,12 @@ edition = "2024"
 [dependencies]
 quinn = { workspace = true }
 framework = { path = "../framework" }
+
+
+[[example]]
+name = "simple"
+path = "examples/quinn/simple.rs"
+
+[[example]]
+name = "simple_with_mock_auth"
+path = "examples/quinn/simple_with_mock_auth.rs"

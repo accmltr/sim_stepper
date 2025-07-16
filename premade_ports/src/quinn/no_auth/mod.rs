@@ -1,6 +1,9 @@
 /// Connects to described server, sends locally generated events and
 /// reads server event consequential events.
 ///
+/// DOES:
+/// - Convert incoming batched events into simulation events.
+/// - Convert local generated, outgoing events into raw events.
 pub mod client;
 /// Accepts all attempted connections and opens channel for incoming and
 /// outgoing events with clients.

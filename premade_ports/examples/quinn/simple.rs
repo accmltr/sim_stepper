@@ -1,3 +1,3 @@
 fn main() {
-    println!("Hello from 'simple' example.");
+    println!("Hello from 'quinn_simple' example.");
 }

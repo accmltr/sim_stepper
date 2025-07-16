@@ -1,4 +1,6 @@
-pub mod forward_stepper;
+pub use forward_stepper::ForwardStepper;
+
+mod forward_stepper;
 // ---------------------------------------------------------------------
 // /// Runs one simulation authentically, while another one diverges by
 // /// stepping over local events emediatly. Both simulations step over

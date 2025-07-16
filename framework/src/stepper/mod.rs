@@ -2,7 +2,7 @@ use crate::event_port::EventPort;
 use crate::simulation::Simulation;
 use crate::simulation::StepLogic;
 
-pub mod steppers_implemented;
+pub mod implemented;
 
 /// Runs your simulation for you based on incoming events, that are read
 /// by the stepper from a given [`Port`] reference.

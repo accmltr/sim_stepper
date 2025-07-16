@@ -11,6 +11,12 @@ pub struct ForwardStepper<Event, State: StepLogic<Event>> {
     simulation: Simulation<Event, State>,
 }
 
+impl<Event, State: StepLogic<Event>> ForwardStepper<Event, State> {
+    pub fn new(simulation: Simulation<Event, State>) -> Self {
+        Self { simulation }
+    }
+}
+
 impl<Event, State: StepLogic<Event>> Stepper<Event, State> for ForwardStepper<Event, State>
 where
     Event: Clone,

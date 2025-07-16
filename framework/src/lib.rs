@@ -73,18 +73,12 @@
 //!    OR
 //! Simulation || Stepper & Port
 
-//# Re-exports
-pub use event_port::EventPort;
-pub use simulation::Simulation;
-pub use stepper::{Stepper, steppers_implemented::forward_stepper::ForwardStepper};
-
-//# Mods
 /// Manages connections and messages from and to connections.
-mod event_port;
+pub mod event_port;
 /// Lock step simulation.
-mod simulation;
+pub mod simulation;
 /// Manages simulation and based on message incoming and outgoing messages.
-mod stepper;
+pub mod stepper;
 
 // Requirements:
 //

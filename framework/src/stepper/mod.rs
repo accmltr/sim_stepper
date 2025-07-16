@@ -1,5 +1,5 @@
-use crate::Simulation;
 use crate::event_port::EventPort;
+use crate::simulation::Simulation;
 use crate::simulation::StepLogic;
 
 pub mod steppers_implemented;

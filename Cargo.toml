@@ -1,20 +1,7 @@
-[package]
-name = "sim_stepper"
-version = "0.1.0"
-edition = "2024"
+[workspace]
+resolver = "3"
+members = [
+  "framework"
+]
 
-[dependencies]
-quinn = "0.11.8"
-serde = "1.0.219"
-
-[features]
-default = [ "easy_step_io" ]
-
-# Feature Sets
-
-# Feature Groups
-easy_step_io = [ "easy_step_in", "easy_step_out" ]
-
-# Optional Features
-easy_step_in = []
-easy_step_out = []
+[workspace.dependencies]

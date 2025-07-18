@@ -4,11 +4,11 @@ use std::marker::PhantomData;
 /// `RI` - Runtime In. Can be used by runtime to request that the simulation
 /// gather certain information during the step process and return it as `RO`.
 /// `RO` - Runtime Out. Returned information for runtime.
-pub struct Simulation<SI, SO, State, RI, RO, I, O>
+pub struct Simulation<State, I, O, SI, SO, RI, RO>
 where
     I: StepI<SI, RI>,
     O: StepO<SO, RO>,
-    State: StepLogic<SI, SO, RI, RO, I, O>,
+    State: StepLogic<I, O, SI, SO, RI, RO>,
 {
     step_count: u64,
     state: State,
@@ -20,11 +20,11 @@ where
     step_out_type: PhantomData<O>,
 }
 
-impl<SI, SO, State, RI, RO, I, O> Simulation<SI, SO, State, RI, RO, I, O>
+impl<State, I, O, SI, SO, RI, RO> Simulation<State, I, O, SI, SO, RI, RO>
 where
     I: StepI<SI, RI>,
     O: StepO<SO, RO>,
-    State: StepLogic<SI, SO, RI, RO, I, O>,
+    State: StepLogic<I, O, SI, SO, RI, RO>,
 {
     pub fn new(state: State) -> Self {
         Self {
@@ -68,20 +68,20 @@ where
     }
 }
 
-pub trait StepLogic<Input, Output, RI, RO, I, O>
+pub trait StepLogic<I, O, SI, SO, RI, RO>
 where
-    I: StepI<Input, RI>,
-    O: StepO<Output, RO>,
+    I: StepI<SI, RI>,
+    O: StepO<SO, RO>,
 {
     fn step(&mut self, step_count: u64, input: I) -> O;
 }
 
-pub trait StepI<SimI, RunI> {
-    fn simulation_in(&self) -> &SimI;
-    fn runtime_in(&self) -> &RunI;
+pub trait StepI<SI, RI> {
+    fn simulation_in(&self) -> &SI;
+    fn runtime_in(&self) -> &Option<RI>;
 }
 
-pub trait StepO<SimO, RunO> {
-    fn simulation_out(&self) -> &SimO;
-    fn runtime_out(&self) -> &RunO;
+pub trait StepO<SO, RO> {
+    fn simulation_out(&self) -> &SO;
+    fn runtime_out(&self) -> &Option<RO>;
 }

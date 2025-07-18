@@ -35,10 +35,12 @@ where
         // Construct StepInput instance.
         let step_in = StepInput::new(sim_in, runtime_input);
 
-        // Do step and store returned value.
+        // Do step and capture return values.
         let (step_out, run_out) = self.simulation.step(step_in);
 
-        // Queue consequential input to port for broadcasting.
+        // Give step output to port for broadcasting.
         event_port.step_output_to_all(step_out);
+
+        run_out
     }
 }

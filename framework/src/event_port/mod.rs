@@ -1,18 +1,18 @@
-pub trait ServerPort<StepperInput, StepperOutput> {
+pub trait ServerPort<SI, SO> {
     /// Return client inputs to stepper.
-    fn stepper_read(&mut self) -> StepperInput;
+    fn stepper_read(&mut self) -> SI;
 
     /// Broadcast the step input used on server for all clients
     /// to replicate.
-    fn step_output_to_all(&mut self, stepper_output: StepperOutput);
+    fn sim_out_to_all(&mut self, stepper_output: SO);
 
     /// Send messages at the end of each step.
     fn send(&mut self);
 }
 
-pub trait ClientPort<StepperInput, ToServer> {
+pub trait ClientPort<SI, ToServer> {
     /// Read stepper input received from server.
-    fn stepper_read(&mut self) -> StepperInput;
+    fn stepper_read(&mut self) -> SI;
 
     /// The contribution from this client to the total input on the
     /// server.

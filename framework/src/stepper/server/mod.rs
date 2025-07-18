@@ -39,7 +39,7 @@ where
         let (step_out, run_out) = self.simulation.step(step_in);
 
         // Give step output to port for broadcasting.
-        event_port.step_output_to_all(step_out);
+        event_port.sim_out_to_all(step_out);
 
         run_out
     }

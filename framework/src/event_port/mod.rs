@@ -10,13 +10,12 @@ pub trait ServerPort<SI, SO> {
     fn send(&mut self);
 }
 
-pub trait ClientPort<SI, ToServer> {
+pub trait ClientPort<SIFromServer, ClientSIToServer> {
     /// Read stepper input received from server.
-    fn stepper_read(&mut self) -> SI;
+    fn stepper_read(&mut self) -> SIFromServer;
 
-    /// The contribution from this client to the total input on the
-    /// server.
-    fn client_to_server(&mut self, message: ToServer);
+    /// Message from client to server.
+    fn sim_in_to_server(&mut self, message: ClientSIToServer);
 
     /// Send messages at the end of each step.
     fn send(&mut self);

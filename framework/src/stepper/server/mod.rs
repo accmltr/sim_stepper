@@ -3,7 +3,7 @@ use crate::{
     simulation::{Simulation, StepLogic},
 };
 
-pub struct ServerStepper<StepInput, StepOutput, State>
+pub struct ServerStepper<StepInput, StepOutput, State, RI, RO>
 where
     State: StepLogic<StepInput, StepOutput>,
 {
@@ -11,7 +11,7 @@ where
     simulation: Simulation<StepInput, StepOutput, State>,
 }
 
-impl<StepInput, StepOutput, State> ServerStepper<StepInput, StepOutput, State>
+impl<StepInput, StepOutput, State, RI, RO> ServerStepper<StepInput, StepOutput, State, RI, RO>
 where
     State: StepLogic<StepInput, StepOutput>,
 {
@@ -25,7 +25,7 @@ where
         &self.simulation
     }
 
-    pub fn step<P>(&mut self, event_port: &mut P)
+    pub fn step<P>(&mut self, runtime_query: RI, event_port: &mut P) -> RO
     where
         P: ServerPort<StepInput, StepOutput>,
     {

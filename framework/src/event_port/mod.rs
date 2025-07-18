@@ -4,7 +4,7 @@ pub trait ServerPort<StepperInput, StepperOutput> {
 
     /// Broadcast the step input used on server for all clients
     /// to replicate.
-    fn step_input_to_all(&mut self, stepper_output: StepperOutput);
+    fn step_output_to_all(&mut self, stepper_output: StepperOutput);
 
     /// Send messages at the end of each step.
     fn send(&mut self);

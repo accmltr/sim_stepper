@@ -1,41 +1,44 @@
 use crate::{
     event_port::ServerPort,
-    simulation::{Simulation, StepLogic},
+    simulation::{Simulation, StepInput, StepLogic},
 };
 
-pub struct ServerStepper<StepInput, StepOutput, State, RI, RO>
+pub struct ServerStepper<State, SI, SO, RI, RO>
 where
-    State: StepLogic<StepInput, StepOutput>,
+    State: StepLogic<SI, SO, RI, RO>,
 {
     /// Inner simulation of the stepper, which is never exposed mutably.
-    simulation: Simulation<StepInput, StepOutput, State>,
+    simulation: Simulation<State, SI, SO, RI, RO>,
 }
 
-impl<StepInput, StepOutput, State, RI, RO> ServerStepper<StepInput, StepOutput, State, RI, RO>
+impl<State, SI, SO, RI, RO> ServerStepper<State, SI, SO, RI, RO>
 where
-    State: StepLogic<StepInput, StepOutput>,
+    State: StepLogic<SI, SO, RI, RO>,
 {
     /// Simply creates a new stepper containing a simulation.
-    pub fn new(simulation: Simulation<StepInput, StepOutput, State>) -> Self {
+    pub fn new(simulation: Simulation<State, SI, SO, RI, RO>) -> Self {
         Self { simulation }
     }
 
     /// Returns an immutable reference to the inner simulation of this stepper.
-    pub fn simulation(&self) -> &Simulation<StepInput, StepOutput, State> {
+    pub fn simulation(&self) -> &Simulation<State, SI, SO, RI, RO> {
         &self.simulation
     }
 
-    pub fn step<P>(&mut self, runtime_query: RI, event_port: &mut P) -> RO
+    pub fn step<P>(&mut self, runtime_input: Option<RI>, event_port: &mut P) -> RO
     where
-        P: ServerPort<StepInput, StepOutput>,
+        P: ServerPort<SI, SO>,
     {
         // Fetch inputs from port.
-        let input = event_port.stepper_read();
+        let sim_in = event_port.stepper_read();
 
-        // Do step and store consequential input.
-        let essential_input = self.simulation.step(input);
+        // Construct StepInput instance.
+        let step_in = StepInput::new(sim_in, runtime_input);
+
+        // Do step and store returned value.
+        let (step_out, run_out) = self.simulation.step(step_in);
 
         // Queue consequential input to port for broadcasting.
-        event_port.step_output_to_all(essential_input);
+        event_port.step_output_to_all(step_out);
     }
 }

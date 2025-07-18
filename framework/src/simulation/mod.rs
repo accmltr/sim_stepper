@@ -4,38 +4,30 @@ use std::marker::PhantomData;
 /// `RI` - Runtime In. Can be used by runtime to request that the simulation
 /// gather certain information during the step process and return it as `RO`.
 /// `RO` - Runtime Out. Returned information for runtime.
-pub struct Simulation<State, I, O, SI, SO, RI, RO>
+pub struct Simulation<State, SI, SO, RI, RO>
 where
-    I: StepI<SI, RI>,
-    O: StepO<SO, RO>,
-    State: StepLogic<I, O, SI, SO, RI, RO>,
+    State: StepLogic<SI, SO, RI, RO>,
 {
     step_count: u64,
     state: State,
-    input_type: PhantomData<SI>,
-    output_type: PhantomData<SO>,
+    sim_in_type: PhantomData<SI>,
+    sim_out_type: PhantomData<SO>,
     runtime_in_type: PhantomData<RI>,
     runtime_out_type: PhantomData<RO>,
-    step_in_type: PhantomData<I>,
-    step_out_type: PhantomData<O>,
 }
 
-impl<State, I, O, SI, SO, RI, RO> Simulation<State, I, O, SI, SO, RI, RO>
+impl<State, SI, SO, RI, RO> Simulation<State, SI, SO, RI, RO>
 where
-    I: StepI<SI, RI>,
-    O: StepO<SO, RO>,
-    State: StepLogic<I, O, SI, SO, RI, RO>,
+    State: StepLogic<SI, SO, RI, RO>,
 {
     pub fn new(state: State) -> Self {
         Self {
             step_count: 0,
             state,
-            input_type: PhantomData,
-            output_type: PhantomData,
+            sim_in_type: PhantomData,
+            sim_out_type: PhantomData,
             runtime_in_type: PhantomData,
             runtime_out_type: PhantomData,
-            step_in_type: PhantomData,
-            step_out_type: PhantomData,
         }
     }
 
@@ -43,12 +35,10 @@ where
         Self {
             step_count,
             state,
-            input_type: PhantomData,
-            output_type: PhantomData,
+            sim_in_type: PhantomData,
+            sim_out_type: PhantomData,
             runtime_in_type: PhantomData,
             runtime_out_type: PhantomData,
-            step_in_type: PhantomData,
-            step_out_type: PhantomData,
         }
     }
 
@@ -60,7 +50,7 @@ where
         &self.state
     }
 
-    pub fn step(&mut self, input: I) -> O {
+    pub fn step(&mut self, input: StepInput<SI, RI>) -> (SO, RO) {
         // Increment step count.
         self.step_count += 1;
         // Run step logic and return consequential events.
@@ -68,20 +58,28 @@ where
     }
 }
 
-pub trait StepLogic<I, O, SI, SO, RI, RO>
-where
-    I: StepI<SI, RI>,
-    O: StepO<SO, RO>,
-{
-    fn step(&mut self, step_count: u64, input: I) -> O;
+pub trait StepLogic<SI, SO, RI, RO> {
+    fn step(&mut self, step_count: u64, input: StepInput<SI, RI>) -> (SO, RO);
 }
 
-pub trait StepI<SI, RI> {
-    fn simulation_in(&self) -> &SI;
-    fn runtime_in(&self) -> &Option<RI>;
+pub struct StepInput<SI, RI> {
+    simulation_input: SI,
+    runtime_input: Option<RI>,
 }
 
-pub trait StepO<SO, RO> {
-    fn simulation_out(&self) -> &SO;
-    fn runtime_out(&self) -> &Option<RO>;
+impl<SI, RI> StepInput<SI, RI> {
+    pub fn new(simulation_input: SI, runtime_input: Option<RI>) -> Self {
+        Self {
+            simulation_input,
+            runtime_input,
+        }
+    }
+
+    pub fn simulation_in(&self) -> &SI {
+        &self.simulation_input
+    }
+
+    pub fn runtime_in(&self) -> &Option<RI> {
+        &self.runtime_input
+    }
 }

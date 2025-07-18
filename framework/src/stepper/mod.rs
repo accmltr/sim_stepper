@@ -1,32 +1,18 @@
-use crate::event_port::Port;
+use crate::event_port::ServerPort;
 use crate::simulation::Simulation;
 use crate::simulation::StepLogic;
 
-pub use implemented::ForwardStepper;
+pub use server_stepper::ServerStepper;
 
-mod implemented;
+mod server_stepper;
 
-/// Runs your simulation for you based on incoming events, that are read
-/// by the stepper from a given [`Port`] reference.
-///
-pub trait Stepper<Input, Output, State>
+pub trait ClientStepper<StepInput, StepOutput, State>
 where
-    State: StepLogic<Input, Output>,
+    State: StepLogic<StepInput, StepOutput>,
 {
-    /// Read only access to [`Simulation`].
-    fn simulation(&self) -> &Simulation<Input, Output, State>;
+    fn simulation(&self) -> &Simulation<StepInput, StepOutput, State>;
 
-    /// Reads events from port and step simulation with those events.
-    ///
-    /// ## Note:
-    /// This does not call `send()` on the given port. This is so that
-    /// other interested parties, like the runtime, still has a chance
-    /// to asses the outcome of this step and include their own messages
-    /// to the port outbox before sending happens once per frame. The
-    /// runtime or port should be responsible for sending after each
-    /// step - **only once**.
-    ///
-    fn step<P>(&mut self, event_port: &mut P)
+    fn step<P>(&mut self, event_port: &mut P) -> StepOutput
     where
-        P: Port<Input>;
+        P: ServerPort<StepInput, StepOutput>;
 }

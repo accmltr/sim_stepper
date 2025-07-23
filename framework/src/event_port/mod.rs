@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 /// 1. Creates an endpoint for either client or server.
 /// 2. Accepts QUIC connections and does auth.
 /// 3. If auth success, creates port connection.
@@ -24,31 +26,11 @@ pub trait ServerPort<SI, SO>: Port<SI> {
 }
 
 pub struct TotalStepInput<Id, Event> {
-    all_coalessed: Vec<CoalessedEvents<Id, Event>>,
+    coalessed: HashMap<Id, Vec<Event>>,
 }
 
 impl<Id, Event> TotalStepInput<Id, Event> {
-    pub fn all_coalessed(&self) -> &Vec<CoalessedEvents<Id, Event>> {
-        &self.all_coalessed
-    }
-}
-
-pub struct CoalessedEvents<Id, Event> {
-    id: Id,
-    received_locally: bool,
-    events: Vec<Event>,
-}
-
-impl<Id, Message> CoalessedEvents<Id, Message> {
-    pub fn id(&self) -> &Id {
-        &self.id
-    }
-
-    pub fn received_locally(&self) -> bool {
-        self.received_locally
-    }
-
-    pub fn events(&self) -> &Vec<Message> {
-        &self.events
+    pub fn coalessed(&self) -> &HashMap<Id, Vec<Event>> {
+        &self.coalessed
     }
 }

@@ -14,9 +14,9 @@ pub trait Port<SI> {
     fn send(&mut self);
 }
 
-pub trait ClientPort<SIFromServer, ClientSIToServer>: Port<SIFromServer> {
+pub trait ClientPort<SIFromServer, SIToServer>: Port<SIFromServer> {
     /// Message from client to server.
-    fn sim_in_to_server(&mut self, message: ClientSIToServer);
+    fn sim_in_to_server(&mut self, message: SIToServer);
 }
 
 pub trait ServerPort<SI, SO>: Port<SI> {

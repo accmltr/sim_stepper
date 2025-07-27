@@ -1,33 +1,29 @@
-use std::marker::PhantomData;
+use std::{collections::HashMap, marker::PhantomData};
 
 /// Generic Params:
 /// `RI` - Runtime In. Can be used by runtime to request that the simulation
 /// gather certain information during the step process and return it as `RO`.
 /// `RO` - Runtime Out. Returned information for runtime.
-pub struct Simulation<State, SI, SO, RI, RO>
+pub struct Simulation<State, Event, EventSourceId>
 where
-    State: StepLogic<SI, SO, RI, RO>,
+    State: StepLogic<Event, EventSourceId>,
 {
     step_count: u64,
     state: State,
-    sim_in_type: PhantomData<SI>,
-    sim_out_type: PhantomData<SO>,
-    runtime_in_type: PhantomData<RI>,
-    runtime_out_type: PhantomData<RO>,
+    event_source_id: PhantomData<EventSourceId>,
+    event_type: PhantomData<Event>,
 }
 
-impl<State, SI, SO, RI, RO> Simulation<State, SI, SO, RI, RO>
+impl<State, Event, EventSourceId> Simulation<State, Event, EventSourceId>
 where
-    State: StepLogic<SI, SO, RI, RO>,
+    State: StepLogic<Event, EventSourceId>,
 {
     pub fn new(state: State) -> Self {
         Self {
             step_count: 0,
             state,
-            sim_in_type: PhantomData,
-            sim_out_type: PhantomData,
-            runtime_in_type: PhantomData,
-            runtime_out_type: PhantomData,
+            event_source_id: PhantomData,
+            event_type: PhantomData,
         }
     }
 
@@ -35,10 +31,8 @@ where
         Self {
             step_count,
             state,
-            sim_in_type: PhantomData,
-            sim_out_type: PhantomData,
-            runtime_in_type: PhantomData,
-            runtime_out_type: PhantomData,
+            event_source_id: PhantomData,
+            event_type: PhantomData,
         }
     }
 
@@ -50,7 +44,10 @@ where
         &self.state
     }
 
-    pub fn step(&mut self, input: StepInput<SI, RI>) -> (SO, RO) {
+    pub fn step(
+        &mut self,
+        input: HashMap<EventSourceId, Vec<Event>>,
+    ) -> HashMap<EventSourceId, Vec<Event>> {
         // Increment step count.
         self.step_count += 1;
         // Run step logic and return consequential events.
@@ -58,28 +55,10 @@ where
     }
 }
 
-pub trait StepLogic<SI, SO, RI, RO> {
-    fn step(&mut self, step_count: u64, input: StepInput<SI, RI>) -> (SO, RO);
-}
-
-pub struct StepInput<SI, RI> {
-    simulation_input: SI,
-    runtime_input: Option<RI>,
-}
-
-impl<SI, RI> StepInput<SI, RI> {
-    pub fn new(simulation_input: SI, runtime_input: Option<RI>) -> Self {
-        Self {
-            simulation_input,
-            runtime_input,
-        }
-    }
-
-    pub fn simulation_in(&self) -> &SI {
-        &self.simulation_input
-    }
-
-    pub fn runtime_in(&self) -> &Option<RI> {
-        &self.runtime_input
-    }
+pub trait StepLogic<Event, EventSourceId> {
+    fn step(
+        &mut self,
+        step_count: u64,
+        input: HashMap<EventSourceId, Vec<Event>>,
+    ) -> HashMap<EventSourceId, Vec<Event>>;
 }

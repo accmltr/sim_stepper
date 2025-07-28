@@ -4,9 +4,9 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-quinn = { workspace = true }
 framework = { path = "../framework" }
-
+quinn = { workspace = true }
+# tokio = { workspace = true }
 
 [[example]]
 name = "quinn_simple"

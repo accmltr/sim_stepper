@@ -1,11 +1,8 @@
 use std::{collections::HashMap, marker::PhantomData};
 
-/// Generic Params:
-/// `RI` - Runtime In. Can be used by runtime to request that the simulation
-/// gather certain information during the step process and return it as `RO`.
-/// `RO` - Runtime Out. Returned information for runtime.
 pub struct Simulation<State, Event, EventSourceId>
 where
+    EventSourceId: Eq,
     State: StepLogic<Event, EventSourceId>,
 {
     step_count: u64,
@@ -16,6 +13,7 @@ where
 
 impl<State, Event, EventSourceId> Simulation<State, Event, EventSourceId>
 where
+    EventSourceId: Eq,
     State: StepLogic<Event, EventSourceId>,
 {
     pub fn new(state: State) -> Self {
@@ -55,7 +53,10 @@ where
     }
 }
 
-pub trait StepLogic<Event, EventSourceId> {
+pub trait StepLogic<Event, EventSourceId>
+where
+    EventSourceId: Eq,
+{
     fn step(
         &mut self,
         step_count: u64,

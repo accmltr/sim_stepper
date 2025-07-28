@@ -1,46 +1,43 @@
 use crate::{
     event_port::ServerPort,
-    simulation::{Simulation, StepInput, StepLogic},
+    simulation::{Simulation, StepLogic},
 };
 
-pub struct ServerStepper<State, SI, SO, RI, RO>
+pub struct ServerStepper<State, Event, EventSourceId>
 where
-    State: StepLogic<SI, SO, RI, RO>,
+    EventSourceId: Eq,
+    State: StepLogic<Event, EventSourceId>,
 {
     /// Inner simulation of the stepper, which is never exposed mutably.
-    simulation: Simulation<State, SI, SO, RI, RO>,
+    simulation: Simulation<State, Event, EventSourceId>,
 }
 
-impl<State, SI, SO, RI, RO> ServerStepper<State, SI, SO, RI, RO>
+impl<State, Event, EventSourceId> ServerStepper<State, Event, EventSourceId>
 where
-    State: StepLogic<SI, SO, RI, RO>,
+    EventSourceId: Eq,
+    State: StepLogic<Event, EventSourceId>,
 {
     /// Simply creates a new stepper containing a simulation.
-    pub fn new(simulation: Simulation<State, SI, SO, RI, RO>) -> Self {
+    pub fn new(simulation: Simulation<State, Event, EventSourceId>) -> Self {
         Self { simulation }
     }
 
     /// Returns an immutable reference to the inner simulation of this stepper.
-    pub fn simulation(&self) -> &Simulation<State, SI, SO, RI, RO> {
+    pub fn simulation(&self) -> &Simulation<State, Event, EventSourceId> {
         &self.simulation
     }
 
-    pub fn step<P>(&mut self, runtime_input: Option<RI>, event_port: &mut P) -> RO
+    pub fn step<P>(&mut self, event_port: &mut P)
     where
-        P: ServerPort<SI, SO>,
+        P: ServerPort<Event, EventSourceId>,
     {
         // Fetch inputs from port.
-        let sim_in = event_port.stepper_read();
-
-        // Construct StepInput instance.
-        let step_in = StepInput::new(sim_in, runtime_input);
+        let sim_in = event_port.read_events();
 
         // Do step and capture return values.
-        let (step_out, run_out) = self.simulation.step(step_in);
+        let sim_out = self.simulation.step(sim_in);
 
         // Give step output to port for broadcasting.
-        event_port.sim_out_to_all(step_out);
-
-        run_out
+        event_port.queue_server_step_input_to_clients(sim_out);
     }
 }

@@ -1,21 +1,23 @@
 use crate::simulation::{Simulation, StepLogic};
 
-pub struct ForwardStepper<State, SI, SO, RI, RO>
+pub struct ForwardStepper<State, Event, EventSourceID>
 where
-    State: StepLogic<SI, SO, RI, RO>,
+    State: StepLogic<Event, EventSourceID>,
+    EventSourceID: Eq,
 {
-    simulation: Simulation<State, SI, SO, RI, RO>,
+    simulation: Simulation<State, Event, EventSourceID>,
 }
 
-impl<State, SI, SO, RI, RO> ForwardStepper<State, SI, SO, RI, RO>
+impl<State, Event, EventSourceID> ForwardStepper<State, Event, EventSourceID>
 where
-    State: StepLogic<SI, SO, RI, RO>,
+    State: StepLogic<Event, EventSourceID>,
+    EventSourceID: Eq,
 {
-    pub fn new(simulation: Simulation<State, SI, SO, RI, RO>) -> Self {
+    pub fn new(simulation: Simulation<State, Event, EventSourceID>) -> Self {
         Self { simulation }
     }
 
-    pub fn simulation(&self) -> &Simulation<State, SI, SO, RI, RO> {
+    pub fn simulation(&self) -> &Simulation<State, Event, EventSourceID> {
         &self.simulation
     }
 }

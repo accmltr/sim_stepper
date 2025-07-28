@@ -1,35 +1,38 @@
 use crate::{
+    event::Event,
     event_port::ServerPort,
     simulation::{Simulation, StepLogic},
 };
 
-pub struct ServerStepper<State, Event, EventSourceId>
+pub struct ServerStepper<State, E, EventSourceId>
 where
+    E: Event,
     EventSourceId: Eq,
-    State: StepLogic<Event, EventSourceId>,
+    State: StepLogic<E, EventSourceId>,
 {
     /// Inner simulation of the stepper, which is never exposed mutably.
-    simulation: Simulation<State, Event, EventSourceId>,
+    simulation: Simulation<State, E, EventSourceId>,
 }
 
-impl<State, Event, EventSourceId> ServerStepper<State, Event, EventSourceId>
+impl<State, E, EventSourceId> ServerStepper<State, E, EventSourceId>
 where
+    E: Event,
     EventSourceId: Eq,
-    State: StepLogic<Event, EventSourceId>,
+    State: StepLogic<E, EventSourceId>,
 {
     /// Simply creates a new stepper containing a simulation.
-    pub fn new(simulation: Simulation<State, Event, EventSourceId>) -> Self {
+    pub fn new(simulation: Simulation<State, E, EventSourceId>) -> Self {
         Self { simulation }
     }
 
     /// Returns an immutable reference to the inner simulation of this stepper.
-    pub fn simulation(&self) -> &Simulation<State, Event, EventSourceId> {
+    pub fn simulation(&self) -> &Simulation<State, E, EventSourceId> {
         &self.simulation
     }
 
     pub fn step<P>(&mut self, event_port: &mut P)
     where
-        P: ServerPort<Event, EventSourceId>,
+        P: ServerPort<E, EventSourceId>,
     {
         // Fetch inputs from port.
         let sim_in = event_port.read_events();

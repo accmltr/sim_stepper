@@ -4,6 +4,8 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+serde = { workspace = true }
+
 
 # [features]
 # default = [ "easy_step_io" ]

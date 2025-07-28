@@ -1,22 +1,26 @@
 use std::{collections::HashMap, marker::PhantomData};
 
+use crate::event::Event;
+
 pub type StepInput<EventSourceId, Event> = HashMap<EventSourceId, Vec<Event>>;
 
-pub struct Simulation<State, Event, EventSourceID>
+pub struct Simulation<State, E, EventSourceID>
 where
+    E: Event,
     EventSourceID: Eq,
-    State: StepLogic<Event, EventSourceID>,
+    State: StepLogic<E, EventSourceID>,
 {
     step_count: u64,
     state: State,
     event_source_id: PhantomData<EventSourceID>,
-    event_type: PhantomData<Event>,
+    event_type: PhantomData<E>,
 }
 
-impl<State, Event, EventSourceID> Simulation<State, Event, EventSourceID>
+impl<State, E, EventSourceID> Simulation<State, E, EventSourceID>
 where
+    E: Event,
     EventSourceID: Eq,
-    State: StepLogic<Event, EventSourceID>,
+    State: StepLogic<E, EventSourceID>,
 {
     pub fn new(state: State) -> Self {
         Self {
@@ -44,10 +48,7 @@ where
         &self.state
     }
 
-    pub fn step(
-        &mut self,
-        input: StepInput<EventSourceID, Event>,
-    ) -> StepInput<EventSourceID, Event> {
+    pub fn step(&mut self, input: StepInput<EventSourceID, E>) -> StepInput<EventSourceID, E> {
         // Increment step count.
         self.step_count += 1;
         // Run step logic and return consequential events.
@@ -55,13 +56,14 @@ where
     }
 }
 
-pub trait StepLogic<Event, EventSourceID>
+pub trait StepLogic<E, EventSourceID>
 where
+    E: Event,
     EventSourceID: Eq,
 {
     fn step(
         &mut self,
         step_count: u64,
-        input: StepInput<EventSourceID, Event>,
-    ) -> StepInput<EventSourceID, Event>;
+        input: StepInput<EventSourceID, E>,
+    ) -> StepInput<EventSourceID, E>;
 }

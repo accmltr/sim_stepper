@@ -8,6 +8,7 @@
 //! - Provides various simulation managers which handle message passing between
 //!   local simulation(s) and the port.
 //! - Provides port implementation for networking functionality via QUIC.
+pub mod event;
 pub mod event_port;
 pub mod simulation;
 pub mod stepper;

@@ -5,6 +5,7 @@
 /// - Convert incoming batched events into simulation events.
 /// - Convert local generated, outgoing events into raw events.
 pub mod client;
+
 /// Accepts all attempted connections and opens channel for incoming and
 /// outgoing events with clients.
 ///

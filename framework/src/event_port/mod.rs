@@ -19,16 +19,17 @@ where
     fn step(&mut self);
 }
 
+pub trait ServerPort<Event, EventSourceID>: Port<Event, EventSourceID>
+where
+    EventSourceID: Eq,
+{
+    fn queue_runtime_events(&mut self, step_input: StepInput<EventSourceID, Event>);
+    fn queue_server_step_input_to_clients(&mut self, step_input: StepInput<EventSourceID, Event>);
+}
+
 pub trait ClientPort<Event, EventSourceID>: Port<Event, EventSourceID>
 where
     EventSourceID: Eq,
 {
     fn queue_client_events_to_server(&mut self, events: Vec<Event>);
-}
-
-pub trait ServerPort<Event, EventSourceID>: Port<Event, EventSourceID>
-where
-    EventSourceID: Eq,
-{
-    fn queue_server_step_input_to_clients(&mut self, step_input: StepInput<EventSourceID, Event>);
 }

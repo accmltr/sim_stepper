@@ -1,15 +1,26 @@
-use std::thread;
-
 use framework::{
     event::Event,
     event_port::{Port, ServerPort},
 };
+use quinn::Endpoint;
+use std::{marker::PhantomData, thread};
 
-pub struct QuinnServerPort {}
+pub struct QuinnServerPort<E, EventSourceID>
+where
+    E: Event,
+    EventSourceID: Eq,
+{
+    event_type: PhantomData<E>,
+    event_source_id_type: PhantomData<EventSourceID>,
+}
 
-impl QuinnServerPort {
-    pub fn new() {
-        let (tx, rx) = std::sync::mpsc::channel();
+impl<E, EventSourceID> QuinnServerPort<E, EventSourceID>
+where
+    E: Event,
+    EventSourceID: Eq,
+{
+    pub fn new(endpoint: Endpoint) -> Self {
+        let (tx, rx) = crossbeam::channel::unbounded::<(EventSourceID, E)>();
 
         thread::spawn(move || {
             let runtime = tokio::runtime::Builder::new_current_thread()
@@ -21,12 +32,17 @@ impl QuinnServerPort {
                 run_networking().await;
             });
         });
+
+        Self {
+            event_type: PhantomData,
+            event_source_id_type: PhantomData,
+        }
     }
 }
 
 async fn run_networking() {}
 
-impl<E, EventSourceID> Port<E, EventSourceID> for QuinnServerPort
+impl<E, EventSourceID> Port<E, EventSourceID> for QuinnServerPort<E, EventSourceID>
 where
     E: Event,
     EventSourceID: Eq,
@@ -40,7 +56,7 @@ where
     }
 }
 
-impl<E, EventSourceID> ServerPort<E, EventSourceID> for QuinnServerPort
+impl<E, EventSourceID> ServerPort<E, EventSourceID> for QuinnServerPort<E, EventSourceID>
 where
     E: Event,
     EventSourceID: Eq,

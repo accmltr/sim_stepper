@@ -5,6 +5,7 @@ members = [
 , "premade_ports"]
 
 [workspace.dependencies]
+crossbeam = "0.8.4"
 quinn = "0.11.8"
 serde = "1.0.219"
 tokio = "1.47.0"

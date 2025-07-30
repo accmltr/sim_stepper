@@ -39,18 +39,19 @@ fn main() -> Result<(), Box<dyn Error + Send + Sync + 'static>> {
 
             println!("Creating server port.");
             let server_port = QuinnServerPort::<MyEvent, u64>::new(server_endpoint);
+            wait(1);
+            println!("received: {:?}", server_port.read_received());
             println!("Creating client port.");
-            let client_port = QuinnClientPort::<MyEvent, u64>::new(
+            let _client_port = QuinnClientPort::<MyEvent, u64>::new(
                 client_endpoint,
                 SERVER_ADDR,
                 SERVER_NAME.to_string(),
             );
+            wait(15);
         });
     });
 
-    thread_handle.join();
-
-    thread::sleep(Duration::new(1, 0));
+    thread_handle.join().unwrap();
 
     // println!("Sending input event from client to server.");
 
@@ -62,6 +63,14 @@ fn main() -> Result<(), Box<dyn Error + Send + Sync + 'static>> {
 
     println!("Simple quinn ports example done.");
     Ok(())
+}
+
+fn wait(seconds: u64) {
+    for i in 0..seconds {
+        thread::sleep(Duration::from_secs(1));
+        let k = seconds - i;
+        println!("{k}")
+    }
 }
 
 #[derive(serde::Serialize, serde::Deserialize)]

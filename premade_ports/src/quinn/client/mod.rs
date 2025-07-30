@@ -35,9 +35,8 @@ where
             // Use the runtime to wait for the async entry point to exit.
             rt.block_on(async {
                 // Run endpoint logic.
-                match handle_endpoint(endpoint, server_addr, server_name).await {
-                    Err(err) => eprintln!("Error occurred on client port:\n{err:?}"),
-                    _ => (),
+                if let Err(err) = handle_endpoint(endpoint, server_addr, server_name).await {
+                    eprintln!("Error occurred on client port:\n{err:?}")
                 }
             });
         });
@@ -54,19 +53,24 @@ async fn handle_endpoint(
     server_addr: SocketAddr,
     server_name: String,
 ) -> Result<(), Box<dyn Error>> {
+    println!("Attempting to connect to server.");
+    println!("Connecting to addre: {:?}", server_addr);
     match endpoint.connect(server_addr, server_name.as_str()) {
-        Ok(connecting) => match connecting.await {
-            Ok(conn) => {
-                println!("Successfully connected to server: {conn:?}");
-                while let Ok(mut recv) = conn.accept_uni().await {
-                    let msg = recv.read_to_end(50).await?;
-                    println!("Message received from server:\n{msg:?}")
+        Ok(connecting) => {
+            println!("Attempting to establish connection with server.");
+            match connecting.await {
+                Ok(conn) => {
+                    println!("Successfully connected to server: {conn:?}");
+                    while let Ok(mut recv) = conn.accept_uni().await {
+                        let msg = recv.read_to_end(50).await?;
+                        println!("Message received from server:\n{msg:?}")
+                    }
                 }
-            }
-            Err(conn_err) => {
-                println!("Could not establish connection with server: {conn_err:?}");
-            }
-        },
+                Err(conn_err) => {
+                    println!("Could not establish connection with server: {conn_err:?}");
+                }
+            };
+        }
         Err(connect_err) => {
             println!("Could not connect to server: {connect_err:?}");
         }

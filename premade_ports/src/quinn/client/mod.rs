@@ -1,11 +1,81 @@
+use std::{error::Error, marker::PhantomData, net::SocketAddr, thread};
+
 use framework::{
     event::Event,
     event_port::{ClientPort, Port},
 };
+use quinn::Endpoint;
 
-pub struct QuinnClientPort {}
+pub struct QuinnClientPort<E, EventSourceID>
+where
+    E: Event,
+    EventSourceID: Eq,
+{
+    event_type: PhantomData<E>,
+    event_source_id_type: PhantomData<EventSourceID>,
+}
 
-impl<E, EventSourceID> Port<E, EventSourceID> for QuinnClientPort
+impl<E, EventSourceID> QuinnClientPort<E, EventSourceID>
+where
+    E: Event,
+    EventSourceID: Eq,
+{
+    pub fn new(endpoint: Endpoint, server_addr: SocketAddr, server_name: String) -> Self {
+        println!("Starting client port.");
+        let (tx, rx) = crossbeam::channel::unbounded::<(EventSourceID, E)>();
+
+        // Spawn seperate thread.
+        thread::spawn(move || {
+            // Start a tokio async runtime.
+            let rt = tokio::runtime::Builder::new_current_thread()
+                .enable_all()
+                .build()
+                .expect("Failed to build tokio runtime.");
+
+            // Use the runtime to wait for the async entry point to exit.
+            rt.block_on(async {
+                // Run endpoint logic.
+                match handle_endpoint(endpoint, server_addr, server_name).await {
+                    Err(err) => eprintln!("Error occurred on client port:\n{err:?}"),
+                    _ => (),
+                }
+            });
+        });
+
+        Self {
+            event_type: PhantomData,
+            event_source_id_type: PhantomData,
+        }
+    }
+}
+
+async fn handle_endpoint(
+    endpoint: Endpoint,
+    server_addr: SocketAddr,
+    server_name: String,
+) -> Result<(), Box<dyn Error>> {
+    match endpoint.connect(server_addr, server_name.as_str()) {
+        Ok(connecting) => match connecting.await {
+            Ok(conn) => {
+                println!("Successfully connected to server: {conn:?}");
+                while let Ok(mut recv) = conn.accept_uni().await {
+                    let msg = recv.read_to_end(50).await?;
+                    println!("Message received from server:\n{msg:?}")
+                }
+            }
+            Err(conn_err) => {
+                println!("Could not establish connection with server: {conn_err:?}");
+            }
+        },
+        Err(connect_err) => {
+            println!("Could not connect to server: {connect_err:?}");
+        }
+    }
+    println!("Client endpoint closed.");
+
+    Ok(())
+}
+impl<E, EventSourceID> Port<E, EventSourceID> for QuinnClientPort<E, EventSourceID>
 where
     E: Event,
     EventSourceID: Eq,
@@ -19,7 +89,7 @@ where
     }
 }
 
-impl<E, EventSourceID> ClientPort<E, EventSourceID> for QuinnClientPort
+impl<E, EventSourceID> ClientPort<E, EventSourceID> for QuinnClientPort<E, EventSourceID>
 where
     E: Event,
     EventSourceID: Eq,

@@ -6,7 +6,6 @@ where
     E: Event,
     EventSourceID: Eq,
 {
-    pub quinn_connection: quinn::Connection,
     pub event_source_id: EventSourceID,
     pub event_receiver: Receiver<E>,
 }

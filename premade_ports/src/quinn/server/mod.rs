@@ -1,13 +1,14 @@
 mod connection;
 
 use connection::ClientConnection;
-use crossbeam::channel::{Receiver, RecvError};
+use crossbeam::channel::RecvError;
 use framework::{
     event::Event,
     event_port::{Port, ServerPort},
 };
 use quinn::Endpoint;
 use std::{
+    error::Error,
     marker::PhantomData,
     thread::{self, JoinHandle},
 };
@@ -18,7 +19,7 @@ where
     EventSourceID: Eq,
 {
     pub thread_join_handle: JoinHandle<()>,
-    slave_thread_receiver: Receiver<&'static str>,
+    slave_thread_receiver: crossbeam::channel::Receiver<ClientConnection<EventSourceID, E>>,
     event_type: PhantomData<E>,
     event_source_id_type: PhantomData<EventSourceID>,
 }
@@ -29,7 +30,8 @@ where
     EventSourceID: Eq + Send + 'static,
 {
     pub fn new(endpoint: Endpoint) -> Self {
-        let (tx, rx) = crossbeam::channel::unbounded::<ClientConnection<EventSourceID, E>>();
+        let (beam_sen, beam_recv) =
+            crossbeam::channel::unbounded::<ClientConnection<EventSourceID, E>>();
 
         // Spawn seperate thread.
         let thread_join_handle = thread::spawn(move || {
@@ -48,14 +50,14 @@ where
                         println!("New connection accepted.");
                         let conn = incoming.await.unwrap();
                         println!("Connection established.");
+                        let (tokio_sen, tokio_recv) = tokio::sync::mpsc::channel::<E>(100);
                         let remote_addr = conn.remote_address();
                         let rtt = conn.rtt();
                         let port_connection = ClientConnection {
-                            quinn_connection: conn.clone(),
-                            event_source_id: todo!(),
-                            event_receiver: todo!(),
+                            event_source_id: conn.stable_id(),
+                            event_receiver: tokio_recv,
                         };
-                        let _ = tx.send(port_connection);
+                        // let _ = tx.send(port_connection);
                         println!("New connection established with client addr: {remote_addr:?}.");
                         println!("Ping is: {rtt:?}");
 
@@ -67,7 +69,7 @@ where
 
                     println!("Server endpoint closed.");
 
-                    Ok(())
+                    Ok::<(), Box<dyn Error>>(())
                 }
                 .await
                 {
@@ -78,13 +80,13 @@ where
 
         Self {
             thread_join_handle,
-            slave_thread_receiver: rx,
+            slave_thread_receiver: beam_recv,
             event_type: PhantomData,
             event_source_id_type: PhantomData,
         }
     }
 
-    pub fn read_received(&self) -> Result<&'static str, RecvError> {
+    pub fn read_received(&self) -> Result<ClientConnection<EventSourceID, E>, RecvError> {
         self.slave_thread_receiver.recv()
     }
 }

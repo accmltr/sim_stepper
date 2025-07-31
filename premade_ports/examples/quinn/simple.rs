@@ -17,6 +17,7 @@ const SERVER_ADDR: SocketAddr = SocketAddr::new(LOCALHOST_V4, 5001);
 mod mock_sim_and_stepper;
 
 fn main() -> Result<(), Box<dyn Error + Send + Sync + 'static>> {
+    let _ = rustls::crypto::aws_lc_rs::default_provider().install_default();
     println!("Hello from 'quinn_simple' example.");
 
     // Spawn seperate thread.
@@ -47,7 +48,9 @@ fn main() -> Result<(), Box<dyn Error + Send + Sync + 'static>> {
                 SERVER_ADDR,
                 SERVER_NAME.to_string(),
             );
-            wait(10);
+            wait(11);
+            _client_port.thread_join_handle.join();
+            server_port.thread_join_handle.join();
         });
     });
 

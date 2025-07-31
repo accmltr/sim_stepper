@@ -1,4 +1,9 @@
-use std::{error::Error, marker::PhantomData, net::SocketAddr, thread};
+use std::{
+    error::Error,
+    marker::PhantomData,
+    net::SocketAddr,
+    thread::{self, JoinHandle},
+};
 
 use framework::{
     event::Event,
@@ -11,6 +16,7 @@ where
     E: Event,
     EventSourceID: Eq,
 {
+    pub thread_join_handle: JoinHandle<()>,
     event_type: PhantomData<E>,
     event_source_id_type: PhantomData<EventSourceID>,
 }
@@ -25,7 +31,7 @@ where
         let (tx, rx) = crossbeam::channel::unbounded::<(EventSourceID, E)>();
 
         // Spawn seperate thread.
-        thread::spawn(move || {
+        let handle = thread::spawn(move || {
             // Start a tokio async runtime.
             let rt = tokio::runtime::Builder::new_current_thread()
                 .enable_all()
@@ -42,6 +48,7 @@ where
         });
 
         Self {
+            thread_join_handle: handle,
             event_type: PhantomData,
             event_source_id_type: PhantomData,
         }

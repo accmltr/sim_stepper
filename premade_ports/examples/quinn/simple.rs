@@ -47,7 +47,7 @@ fn main() -> Result<(), Box<dyn Error + Send + Sync + 'static>> {
                 SERVER_ADDR,
                 SERVER_NAME.to_string(),
             );
-            wait(15);
+            wait(10);
         });
     });
 

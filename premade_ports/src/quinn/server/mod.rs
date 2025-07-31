@@ -8,7 +8,6 @@ use std::{
     error::Error,
     marker::PhantomData,
     thread::{self, JoinHandle},
-    time::Duration,
 };
 
 pub struct QuinnServerPort<E, EventSourceID>
@@ -67,27 +66,22 @@ async fn handle_endpoint(
     println!("Waiting for incoming connections");
     println!("Server listening on: {:?}", endpoint.local_addr()?);
     let _ = master_thread_sender.send("hi");
-    tokio::spawn(async move {
-        println!("lsjfsdlkjsdj");
-        while let Some(incoming) = endpoint.accept().await {
-            println!("New connection accepted.");
-            let conn = incoming.await.unwrap();
-            println!("Connection established.");
-            let remote_addr = conn.remote_address();
-            let rtt = conn.rtt();
-            println!("New connection established with client addr: {remote_addr:?}.");
-            println!("Ping is: {rtt:?}");
+    while let Some(incoming) = endpoint.accept().await {
+        println!("New connection accepted.");
+        let conn = incoming.await.unwrap();
+        println!("Connection established.");
+        let remote_addr = conn.remote_address();
+        let rtt = conn.rtt();
+        println!("New connection established with client addr: {remote_addr:?}.");
+        println!("Ping is: {rtt:?}");
 
-            let mut send_stream = conn.open_uni().await.unwrap();
-            println!("Writing message to client.");
-            send_stream.write_all(b"hello from server").await.unwrap();
-            send_stream.finish().unwrap();
-        }
-        println!("Server endpoint closed.");
-    })
-    .await;
+        let mut send_stream = conn.open_uni().await.unwrap();
+        println!("Writing message to client.");
+        send_stream.write_all(b"hello from server").await.unwrap();
+        send_stream.finish().unwrap();
+    }
 
-    thread::sleep(Duration::from_secs(10));
+    println!("Server endpoint closed.");
 
     Ok(())
 }

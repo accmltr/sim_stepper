@@ -1,11 +1,13 @@
-use crossbeam::channel::{Receiver, RecvError, Sender};
+mod connection;
+
+use connection::ClientConnection;
+use crossbeam::channel::{Receiver, RecvError};
 use framework::{
     event::Event,
     event_port::{Port, ServerPort},
 };
 use quinn::Endpoint;
 use std::{
-    error::Error,
     marker::PhantomData,
     thread::{self, JoinHandle},
 };
@@ -27,8 +29,7 @@ where
     EventSourceID: Eq + Send + 'static,
 {
     pub fn new(endpoint: Endpoint) -> Self {
-        // let (tx, rx) = crossbeam::channel::unbounded::<(EventSourceID, E)>();
-        let (tx, rx) = crossbeam::channel::unbounded();
+        let (tx, rx) = crossbeam::channel::unbounded::<ClientConnection<EventSourceID, E>>();
 
         // Spawn seperate thread.
         let thread_join_handle = thread::spawn(move || {
@@ -40,7 +41,36 @@ where
 
             // Use the runtime to wait for the async entry point to exit.
             rt.block_on(async {
-                if let Err(err) = handle_endpoint(endpoint, tx).await {
+                if let Err(err) = async {
+                    println!("Waiting for incoming connections");
+                    println!("Server listening on: {:?}", endpoint.local_addr()?);
+                    while let Some(incoming) = endpoint.accept().await {
+                        println!("New connection accepted.");
+                        let conn = incoming.await.unwrap();
+                        println!("Connection established.");
+                        let remote_addr = conn.remote_address();
+                        let rtt = conn.rtt();
+                        let port_connection = ClientConnection {
+                            quinn_connection: conn.clone(),
+                            event_source_id: todo!(),
+                            event_receiver: todo!(),
+                        };
+                        let _ = tx.send(port_connection);
+                        println!("New connection established with client addr: {remote_addr:?}.");
+                        println!("Ping is: {rtt:?}");
+
+                        let mut send_stream = conn.open_uni().await.unwrap();
+                        println!("Writing message to client.");
+                        send_stream.write_all(b"hello from server").await.unwrap();
+                        send_stream.finish().unwrap();
+                    }
+
+                    println!("Server endpoint closed.");
+
+                    Ok(())
+                }
+                .await
+                {
                     eprintln!("[Server Port]\n{err:?}")
                 }
             });
@@ -57,33 +87,6 @@ where
     pub fn read_received(&self) -> Result<&'static str, RecvError> {
         self.slave_thread_receiver.recv()
     }
-}
-
-async fn handle_endpoint(
-    endpoint: Endpoint,
-    master_thread_sender: Sender<&'static str>,
-) -> Result<(), Box<dyn Error>> {
-    println!("Waiting for incoming connections");
-    println!("Server listening on: {:?}", endpoint.local_addr()?);
-    let _ = master_thread_sender.send("hi");
-    while let Some(incoming) = endpoint.accept().await {
-        println!("New connection accepted.");
-        let conn = incoming.await.unwrap();
-        println!("Connection established.");
-        let remote_addr = conn.remote_address();
-        let rtt = conn.rtt();
-        println!("New connection established with client addr: {remote_addr:?}.");
-        println!("Ping is: {rtt:?}");
-
-        let mut send_stream = conn.open_uni().await.unwrap();
-        println!("Writing message to client.");
-        send_stream.write_all(b"hello from server").await.unwrap();
-        send_stream.finish().unwrap();
-    }
-
-    println!("Server endpoint closed.");
-
-    Ok(())
 }
 
 impl<E, EventSourceID> Port<E, EventSourceID> for QuinnServerPort<E, EventSourceID>

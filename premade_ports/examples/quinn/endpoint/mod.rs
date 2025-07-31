@@ -1,3 +1,5 @@
+#![cfg(any(feature = "rustls-aws-lc-rs", feature = "rustls-ring"))]
+//! Commonly used code in most examples.
 use quinn::{
     ClientConfig, Endpoint, ServerConfig,
     crypto::rustls::{QuicClientConfig, QuicServerConfig},
